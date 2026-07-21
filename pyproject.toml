@@ -42,6 +42,12 @@ Changelog = "https://github.com/gabriel-jung/bispectrosa/blob/main/CHANGELOG.md"
 dev = [
     "bispectrosa[audio,viz]",
     "pytest>=8",
+    # resolution floors for the lowest-versions CI job: with numpy at its 1.22
+    # floor the resolver otherwise walks librosa's numba dependency back to
+    # ancient versions (llvmlite 0.36) whose sdists no longer build; numba 0.60
+    # is the lowest that supports numpy 1.22 and installs cleanly
+    "numba>=0.60",
+    "llvmlite>=0.43",
     "ruff>=0.14",
     "pre-commit>=4",
     "codespell>=2.3",

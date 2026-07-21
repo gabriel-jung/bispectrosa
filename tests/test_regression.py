@@ -37,7 +37,10 @@ def test_mel_bispectrogram_pooled(ref):
 def test_mel_bispectrogram_frames(ref):
     y = ref["y"]
     got = bs.mel_bispectrogram(y, sr=16000, degree=12).T  # (T, 49)
-    np.testing.assert_allclose(got, ref["mel_modal_pair_frames"], rtol=1e-5, atol=1e-4)
+    # atol covers cross-platform float32 FFT differences: the fixture is frozen
+    # on macOS and single per-frame entries land ~1e-3 away (in signed-log
+    # units, values ~20-40) on Linux; a real output change moves far more
+    np.testing.assert_allclose(got, ref["mel_modal_pair_frames"], rtol=1e-5, atol=5e-3)
 
 
 def test_degree_ordered_prefix_property():
