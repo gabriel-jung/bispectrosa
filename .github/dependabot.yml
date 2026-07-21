@@ -1,0 +1,9 @@
+# Monthly PRs bumping GitHub Actions versions (keeps runners off deprecated
+# Node versions). Python deps are floors, not pins; the lockfile is exercised
+# by CI's lowest-versions job, so no version updates for them.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
