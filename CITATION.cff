@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use bispectrosa in your research, please cite it."
+title: "bispectrosa: bispectral features for audio"
+abstract: >-
+  A librosa-style Python library for third-order (bispectrum) audio features,
+  built around a modal (separable Legendre) estimator on the 2-D principal domain.
+authors:
+  - family-names: Jung
+    given-names: Gabriel
+type: software
+license: MIT
+version: 0.1.0
+date-released: 2026-07-21
+repository-code: "https://github.com/gabriel-jung/bispectrosa"
+keywords:
+  - bispectrum
+  - higher-order statistics
+  - audio features
+  - speaker representation
+  - modal estimation

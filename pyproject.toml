@@ -1,0 +1,81 @@
+[project]
+name = "bispectrosa"
+version = "0.1.0"
+description = "Bispectral features for audio: modal estimation, librosa-style API"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Gabriel Jung", email = "gabriel.jung@protonmail.com" }
+]
+requires-python = ">=3.10"
+keywords = ["bispectrum", "higher-order-statistics", "audio", "speech", "features", "modal", "librosa"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+]
+
+[project.optional-dependencies]
+audio = ["librosa>=0.10.2"]
+viz = ["matplotlib>=3.5"]
+
+[project.urls]
+Homepage = "https://github.com/gabriel-jung/bispectrosa"
+Repository = "https://github.com/gabriel-jung/bispectrosa"
+Issues = "https://github.com/gabriel-jung/bispectrosa/issues"
+Changelog = "https://github.com/gabriel-jung/bispectrosa/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "bispectrosa[audio,viz]",
+    "pytest>=8",
+    "ruff>=0.14",
+    "pre-commit>=4",
+    "codespell>=2.3",
+    { include-group = "notebook" },
+]
+# self-contained group for examples/intro.ipynb: uv sync --group notebook
+notebook = [
+    "bispectrosa[audio,viz]",
+    "ipykernel>=6",
+    "nbclient>=0.10",
+    "nbformat>=5.10",
+    "nbstripout>=0.9.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Ship the test suite (and its fixture) in the sdist so downstream packagers
+# can run the regression tests; the wheel stays source-only.
+source-include = ["tests/**"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["*.ipynb"]
+
+[tool.ruff.lint]
+# defaults (E4/E7/E9/F) plus import sorting, pyupgrade, bugbear, and numpy rules
+extend-select = ["I", "UP", "B", "NPY"]
+
+[tool.ruff.lint.per-file-ignores]
+# importorskip("matplotlib") + mpl.use("Agg") must run before the pyplot imports
+"tests/test_display.py" = ["E402"]

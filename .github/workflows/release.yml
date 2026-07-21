@@ -1,0 +1,36 @@
+name: Release
+
+# Publishes to PyPI on a version tag (v0.1.0, ...) via trusted publishing:
+# no API token, PyPI trusts this repo + workflow through GitHub OIDC.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    # CI triggers on branches only, so re-run the suite on the tagged commit
+    # before anything is published
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --group dev
+      - run: uv run pytest -q
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # OIDC token for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
