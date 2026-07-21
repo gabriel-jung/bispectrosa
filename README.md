@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/bispectrosa/"><img src="https://img.shields.io/pypi/v/bispectrosa?style=flat-square&color=7c3aed" alt="PyPI" /></a>
+  <a href="https://pypi.org/project/bispectrosa/"><img src="https://img.shields.io/pypi/v/bispectrosa?color=7c3aed&style=flat-square" alt="PyPI" /></a>
   <img src="https://img.shields.io/badge/python-3.10%E2%80%933.14-7c3aed?style=flat-square" alt="Python 3.10-3.14" />
   <a href="https://github.com/gabriel-jung/bispectrosa/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/gabriel-jung/bispectrosa/ci.yml?style=flat-square&color=7c3aed" alt="CI" /></a>
   <a href="https://github.com/gabriel-jung/bispectrosa/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-7c3aed?style=flat-square" alt="License MIT" /></a>
