@@ -28,8 +28,7 @@ feature: one call, waveform in, a few dozen bispectral coefficients per frame ou
 
 https://github.com/user-attachments/assets/14ad0332-adb3-4eea-b84a-56ebf7c521ff
 
-*The per-frame bispectrum of ~5 s of solo trumpet, real speed, with sound: the harmonic
-lattice moves with the melody
+*The per-frame bispectrum of ~5 s of solo trumpet at real speed, with sound
 ([examples/animate_bispectrum_video.py](https://github.com/gabriel-jung/bispectrosa/blob/main/examples/animate_bispectrum_video.py)).*
 
 The API follows librosa conventions (waveform in, feature out, time as the last axis).
