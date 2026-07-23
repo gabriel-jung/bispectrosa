@@ -3,6 +3,14 @@
 All notable changes to bispectrosa are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow semver.
 
+## [0.2.1] - 2026-07-23
+
+### Fixed
+
+- Cross-platform float32 tolerance in the htk degree-nesting test; the 0.2.0
+  tag failed its release build on it and was never published, so 0.2.1 is the
+  first published release of the changes below.
+
 ## [0.2.0] - 2026-07-23
 
 ### Added
