@@ -46,6 +46,8 @@ def mel_bin_bispectrum(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     kmin: int = 1,
     min_coverage: float = 0.02,
 ) -> np.ndarray:
@@ -62,7 +64,7 @@ def mel_bin_bispectrum(
         Square bispectrum whose grid starts at absolute bin ``kmin`` (as
         returned by :func:`~bispectrosa.bispectrum.raw_bispectrum` with
         ``return_full=True``). NaN cells contribute nothing.
-    sr, n_fft, n_mels, fmin, fmax
+    sr, n_fft, n_mels, fmin, fmax, htk, norm
         Mel filterbank parameters, see
         :func:`~bispectrosa.filters.mel_filterbank`.
     kmin : int
@@ -85,7 +87,9 @@ def mel_bin_bispectrum(
     B = np.asarray(B, dtype=np.float64)
     if B.ndim != 2 or B.shape[0] != B.shape[1]:
         raise ValueError(f"need a square (n, n) bispectrum, got shape {B.shape}")
-    H = mel_filterbank(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax).astype(np.float64)
+    H = mel_filterbank(
+        sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, htk=htk, norm=norm
+    ).astype(np.float64)
     F = H.shape[1]
     if kmin < 0 or kmin + B.shape[0] > F:
         raise ValueError(
@@ -242,6 +246,8 @@ def mel_spectrogram(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     top_db: float | None = 80.0,
     S: np.ndarray | None = None,
     win_length: int | None = None,
@@ -267,6 +273,10 @@ def mel_spectrogram(
         Number of mel bands.
     fmin, fmax : float
         Frequency range of the mel bank, in Hz; ``fmax=None`` means ``sr / 2``.
+    htk, norm
+        Mel warp and triangle normalization, passed through to
+        :func:`~bispectrosa.filters.mel_filterbank` (defaults: Slaney warp,
+        area normalization).
     top_db : float, optional
         Clip the output to the top ``top_db`` decibels below the clip's peak
         (``librosa.power_to_db``'s default 80). This couples every frame to
@@ -296,22 +306,30 @@ def mel_spectrogram(
         center=center,
         pad_mode=pad_mode,
     )
-    fb = mel_filterbank(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax)
+    fb = mel_filterbank(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, htk=htk, norm=norm)
     mel = fb @ (np.abs(S) ** 2)
     return librosa.power_to_db(mel, top_db=top_db).astype(np.float32)
 
 
 @lru_cache(maxsize=32)
-def _mel_modal_bispectrum_cached(basis, degree, sr, n_fft, n_mels, fmin, fmax, dtype):
+def _mel_modal_bispectrum_cached(basis, degree, sr, n_fft, n_mels, fmin, fmax, htk, norm, dtype):
     # the estimator is deterministic in its arguments and dominates the
     # cost of short-clip calls; treated as immutable, never handed out mutably
     if basis == "legendre":
         return mel_legendre_modal_bispectrum(
-            degree, sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=dtype
+            degree,
+            sr=sr,
+            n_fft=n_fft,
+            n_mels=n_mels,
+            fmin=fmin,
+            fmax=fmax,
+            htk=htk,
+            norm=norm,
+            dtype=dtype,
         )
     if basis == "bands":
         return mel_band_modal_bispectrum(
-            n_mels, sr=sr, n_fft=n_fft, fmin=fmin, fmax=fmax, dtype=dtype
+            n_mels, sr=sr, n_fft=n_fft, fmin=fmin, fmax=fmax, htk=htk, norm=norm, dtype=dtype
         )
     raise ValueError(f"basis must be 'legendre' or 'bands', got {basis!r}")
 
@@ -327,6 +345,8 @@ def mel_bispectrogram(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     eps: float = BISPECTROGRAM_EPS,
     log: bool = True,
     dtype: np.dtype = np.float32,
@@ -368,6 +388,10 @@ def mel_bispectrogram(
     fmin, fmax : float
         Frequency range of the mel bank behind the mode basis, in Hz;
         ``fmax=None`` means ``sr / 2``.
+    htk, norm
+        Mel warp and triangle normalization of the bank behind the mode
+        basis, passed through to :func:`~bispectrosa.filters.mel_filterbank`
+        (defaults: Slaney warp, area normalization).
     eps : float
         Signed-log floor (see :func:`signed_log`; ignored when ``log=False``).
     log : bool
@@ -403,7 +427,9 @@ def mel_bispectrogram(
     :func:`~bispectrosa.filters.triangular_filterbank`) and run the pipeline
     yourself: ``signed_log(mb.estimate_beta(stft(y, n_fft=mb.n_irfft))).T``.
     """
-    mb = _mel_modal_bispectrum_cached(basis, degree, sr, n_fft, n_mels, fmin, fmax, np.dtype(dtype))
+    mb = _mel_modal_bispectrum_cached(
+        basis, degree, sr, n_fft, n_mels, fmin, fmax, htk, norm, np.dtype(dtype)
+    )
     S = _stft_or_S(
         y,
         S,

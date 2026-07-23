@@ -50,9 +50,11 @@ def mel_filterbank(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     dtype: np.dtype = np.float32,
 ) -> np.ndarray:
-    """Slaney mel filterbank: thin wrapper over ``librosa.filters.mel`` (``htk=False``).
+    """Mel filterbank: thin wrapper over ``librosa.filters.mel`` (Slaney by default).
 
     Parameters
     ----------
@@ -64,6 +66,12 @@ def mel_filterbank(
         Number of mel bands.
     fmin, fmax : float
         Frequency range covered by the bank, in Hz; ``fmax=None`` means ``sr / 2``.
+    htk : bool
+        Use the HTK mel formula ``2595 log10(1 + f / 700)`` instead of the
+        Slaney piecewise warp (default False). Passed to ``librosa.filters.mel``.
+    norm : {"slaney"}, float, or None
+        Triangle normalization, passed to ``librosa.filters.mel``: ``"slaney"``
+        (default) area-normalizes each filter, ``None`` keeps peak amplitude 1.
     dtype : np.dtype
         Output dtype (default float32).
 
@@ -73,7 +81,9 @@ def mel_filterbank(
         Filter weights ``H[b, k]``.
     """
     librosa = _require_librosa()
-    return librosa.filters.mel(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=dtype)
+    return librosa.filters.mel(
+        sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, htk=htk, norm=norm, dtype=dtype
+    )
 
 
 def triangular_filterbank(
@@ -134,19 +144,21 @@ def mel_legendre_modes(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     dtype: np.dtype = np.float32,
 ) -> np.ndarray:
     """The mel Legendre modes behind :func:`bispectrosa.feature.mel_bispectrogram`.
 
     ``tilde_q[p, k] = sum_b P_p(2 b / (n_mels - 1) - 1) H[b, k]`` with ``H`` the
-    Slaney filterbank of :func:`mel_filterbank`: Legendre evaluated on the band
+    filterbank of :func:`mel_filterbank`: Legendre evaluated on the band
     index rescaled to ``[-1, 1]``, smeared back onto the bins.
 
     Parameters
     ----------
     degree : int
         Maximum mode order (rows ``0..degree``).
-    sr, n_fft, n_mels, fmin, fmax
+    sr, n_fft, n_mels, fmin, fmax, htk, norm
         Filterbank parameters, see :func:`mel_filterbank`.
     dtype : np.dtype
         Working and output dtype (default float32).
@@ -156,7 +168,9 @@ def mel_legendre_modes(
     np.ndarray, shape (degree + 1, n_fft // 2 + 1), of ``dtype``
         Modes ``tilde_q[p, k]``.
     """
-    mel = mel_filterbank(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=dtype)
+    mel = mel_filterbank(
+        sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, htk=htk, norm=norm, dtype=dtype
+    )
     leg = legendre_modes(np.linspace(-1.0, 1.0, n_mels), degree).astype(dtype)
     return (leg @ mel).astype(dtype, copy=False)
 
@@ -172,6 +186,8 @@ def mel_legendre_modal_bispectrum(
     n_mels: int = DEFAULT_N_MELS,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     dtype: np.dtype = np.float32,
 ) -> ModalBispectrum:
     """Modal estimator on the mel Legendre modes.
@@ -186,7 +202,7 @@ def mel_legendre_modal_bispectrum(
     ----------
     degree : int
         Maximum total degree of the pair basis (``p + r <= degree``).
-    sr, n_fft, n_mels, fmin, fmax
+    sr, n_fft, n_mels, fmin, fmax, htk, norm
         Filterbank parameters, see :func:`mel_filterbank`.
     dtype : np.dtype
         Working precision of the basis (default float32).
@@ -198,7 +214,15 @@ def mel_legendre_modal_bispectrum(
         ``n_irfft = n_fft``.
     """
     modes = mel_legendre_modes(
-        degree, sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=dtype
+        degree,
+        sr=sr,
+        n_fft=n_fft,
+        n_mels=n_mels,
+        fmin=fmin,
+        fmax=fmax,
+        htk=htk,
+        norm=norm,
+        dtype=dtype,
     )
     return ModalBispectrum(modes=modes, pairs=modal_index_pairs(degree), n_irfft=n_fft, dtype=dtype)
 
@@ -210,6 +234,8 @@ def mel_band_modal_bispectrum(
     n_fft: int = DEFAULT_N_FFT,
     fmin: float = 0.0,
     fmax: float | None = None,
+    htk: bool = False,
+    norm: str | float | None = "slaney",
     dtype: np.dtype = np.float32,
 ) -> ModalBispectrum:
     """Modal estimator on the mel bands themselves.
@@ -230,7 +256,7 @@ def mel_band_modal_bispectrum(
         Keep it small (10-30) unless you want thousands of coefficients: when
         the bands get narrower than 2 STFT bins the basis degenerates (a
         warning fires) and Gram-based reconstruction turns ill-conditioned.
-    sr, n_fft, fmin, fmax
+    sr, n_fft, fmin, fmax, htk, norm
         Filterbank parameters, see :func:`mel_filterbank`.
     dtype : np.dtype
         Working precision of the basis (default float32).
@@ -241,7 +267,9 @@ def mel_band_modal_bispectrum(
         With ``n_mels * (n_mels + 1) / 2`` band-pair coefficients and
         ``n_irfft = n_fft``.
     """
-    modes = mel_filterbank(sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=dtype)
+    modes = mel_filterbank(
+        sr=sr, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, htk=htk, norm=norm, dtype=dtype
+    )
     narrow = int((np.count_nonzero(modes, axis=1) < 2).sum())
     if narrow:
         import warnings
