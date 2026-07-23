@@ -50,7 +50,7 @@ v = bs.time_pool(B)                     # (49,) utterance-level vector
 ```
 
 The signature follows librosa: `y` is positional, everything else is keyword-only
-(`sr`, `degree`, `n_fft`, `hop_length`, `n_mels`, `fmin`, `fmax`, `window`, `center`, ...).
+(`sr`, `degree`, `n_fft`, `hop_length`, `n_mels`, `fmin`, `fmax`, `htk`, `norm`, `window`, `center`, ...).
 Defaults are tuned for speech (`sr=16000`, `n_fft=400`, `hop_length=160`, `n_mels=80`),
 not librosa's music defaults, so set them explicitly for other domains. Coefficients come
 out time-last, so librosa post-processing composes directly, e.g.
@@ -127,6 +127,8 @@ reused for other domains:
   feature, the raw grid, reconstruction, and cost.
 - [`examples/animate_bispectrum.py`](https://github.com/gabriel-jung/bispectrosa/blob/main/examples/animate_bispectrum.py):
   the per-frame bispectrum as a movie.
+- [`examples/animate_bispectrum_video.py`](https://github.com/gabriel-jung/bispectrosa/blob/main/examples/animate_bispectrum_video.py):
+  the same movie at real speed with the audio muxed in (needs `ffmpeg`).
 
 ## Development
 
