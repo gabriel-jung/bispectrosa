@@ -1,6 +1,6 @@
 [project]
 name = "bispectrosa"
-version = "0.1.0"
+version = "0.2.0"
 description = "Bispectral features for audio: modal estimation, librosa-style API"
 readme = "README.md"
 license = "MIT"

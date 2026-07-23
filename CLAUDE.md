@@ -17,8 +17,9 @@ Feature outputs are frozen in `tests/fixtures/research_ref.npz` and checked bit-
 `tests/test_regression.py`. **Never change a feature's output** except via a deliberate fixture
 update (a green regression after an output change means you moved the fixtures too).
 
-- Mel is Slaney `librosa.filters.mel` only, never HTK. `triangular_filterbank` is for custom band
-  layouts, not a second mel path.
+- Mel goes through the single `librosa.filters.mel` call in `mel_filterbank`: Slaney defaults,
+  `htk`/`norm` opt-in passthrough. `triangular_filterbank` is for custom band layouts, not a
+  second mel path.
 - Coefficients are degree-ordered: degree-`d` output is the `modal_pair_dim(d)`-length prefix of
   any higher degree. Tested; preserve it.
 

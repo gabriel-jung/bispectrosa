@@ -3,6 +3,16 @@
 All notable changes to bispectrosa are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/); versions follow semver.
 
+## [0.2.0] - 2026-07-23
+
+### Added
+
+- `htk` and `norm` keyword-only parameters on the whole mel path
+  (`mel_filterbank`, `mel_legendre_modes`, both modal factories,
+  `mel_spectrogram`, `mel_bispectrogram`, `mel_bin_bispectrum`), forwarded
+  verbatim to `librosa.filters.mel`. Defaults (Slaney warp, area
+  normalization) are bit-identical to 0.1.0.
+
 ## [0.1.0] - 2026-07-21
 
 Initial version. Bispectral (third-order) audio features with a librosa-style API:
